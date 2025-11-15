@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Producto - ShopHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header fijo -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <a href="index.html" class="logo-link">
+                    <div class="logo">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="40" rx="8" fill="#2563eb"/>
+                            <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="brand">
+                        <h1 class="brand-name">ShopHub</h1>
+                        <p class="brand-slogan">Encuentra lo que buscas</p>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right">
+                <button class="btn-secondary">Crear cuenta</button>
+                <button class="btn-primary">Iniciar sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Header del producto -->
+            <div class="product-detail-header">
+                <h2 id="productTitle" class="product-detail-title">Cargando...</h2>
+                <a href="index.html" class="back-button">← Volver</a>
+            </div>
+
+            <!-- Body del producto -->
+            <div class="product-detail-body">
+                <!-- Galería de imágenes -->
+                <div id="galleryContainer" class="gallery-container">
+                    <!-- Se cargará dinámicamente -->
+                </div>
+
+                <!-- Descripción del producto -->
+                <div id="productDescription" class="product-detail-description">
+                    <!-- Se cargará dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-left">
+                <div class="footer-logo">
+                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="40" height="40" rx="8" fill="#2563eb"/>
+                        <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <p class="footer-text">© 2025 ShopHub. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal para ver todas las imágenes -->
+    <div id="galleryModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <h3 class="modal-title">Galería de imágenes</h3>
+            <div id="modalGalleryGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <!-- Se cargará dinámicamente -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeGalleryModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Obtener ID del producto de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        if (!productId) {
+            window.location.href = 'index.html';
+        }
+
+        // Cargar producto
+        const product = window.ShopHub.getProductById(productId);
+
+        if (!product) {
+            alert('Producto no encontrado');
+            window.location.href = 'index.html';
+        }
+
+        // Renderizar título
+        document.getElementById('productTitle').textContent = product.nombre;
+
+        // Renderizar galería
+        const galleryContainer = document.getElementById('galleryContainer');
+        if (product.imagenes && product.imagenes.length > 0) {
+            let galleryHTML = '<div class="gallery-grid">';
+            
+            // Imagen principal
+            galleryHTML += `
+                <div class="gallery-main">
+                    <img src="${product.imagenes[0]}" alt="${product.nombre}" class="gallery-image" onerror="this.src='https://via.placeholder.com/800x600?text=Imagen+no+disponible'">
+                </div>
+            `;
+            
+            // Imágenes secundarias (máximo 4)
+            for (let i = 1; i < Math.min(5, product.imagenes.length); i++) {
+                galleryHTML += `
+                    <div class="gallery-thumbnail">
+                        <img src="${product.imagenes[i]}" alt="${product.nombre}" class="gallery-image" onerror="this.src='https://via.placeholder.com/400x300?text=Imagen+no+disponible'">
+                    </div>
+                `;
+            }
+            
+            galleryHTML += '</div>';
+            
+            // Botón "Ver más" si hay más de 5 imágenes
+            if (product.imagenes.length > 5) {
+                galleryHTML += `<div class="gallery-more" onclick="openGalleryModal()">Ver más (${product.imagenes.length} fotos)</div>`;
+            }
+            
+            galleryContainer.innerHTML = galleryHTML;
+        }
+
+        // Renderizar descripción
+        document.getElementById('productDescription').innerHTML = `
+            <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Descripción</h3>
+            <p>${product.descripcion}</p>
+        `;
+
+        // Funciones del modal
+        function openGalleryModal() {
+            const modal = document.getElementById('galleryModal');
+            const modalGrid = document.getElementById('modalGalleryGrid');
+            
+            modalGrid.innerHTML = '';
+            product.imagenes.forEach(imagen => {
+                const imgDiv = document.createElement('div');
+                imgDiv.innerHTML = `<img src="${imagen}" alt="${product.nombre}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 0.5rem;" onerror="this.src='https://via.placeholder.com/400x300?text=Imagen+no+disponible'">`;
+                modalGrid.appendChild(imgDiv);
+            });
+            
+            modal.classList.add('active');
+        }
+
+        function closeGalleryModal() {
+            document.getElementById('galleryModal').classList.remove('active');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('galleryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGalleryModal();
+            }
+        });
+    </script>
+</body>
+</html>

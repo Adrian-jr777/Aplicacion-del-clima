@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto - ShopHub Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header fijo -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <a href="admin.html" class="logo-link">
+                    <div class="logo">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="40" rx="8" fill="#2563eb"/>
+                            <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="brand">
+                        <h1 class="brand-name">ShopHub</h1>
+                        <p class="brand-slogan">Agregar Producto</p>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right">
+                <a href="admin-productos.html" class="btn-secondary">← Lista de Productos</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Advertencia para móviles -->
+        <div class="mobile-warning">
+            <div class="mobile-warning-icon">📱</div>
+            <h2 class="mobile-warning-title">Panel no disponible en móviles</h2>
+            <p class="mobile-warning-text">El panel de administración solo está disponible en dispositivos de escritorio. Por favor, accede desde una computadora para gestionar tus productos.</p>
+        </div>
+
+        <!-- Contenido del panel (solo visible en desktop) -->
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1 class="admin-title">Agregar Nuevo Producto</h1>
+                <p class="admin-subtitle">Completa el formulario para añadir un producto al catálogo</p>
+            </div>
+
+            <div id="messageContainer"></div>
+
+            <form id="addProductForm" class="admin-form">
+                <div class="form-group">
+                    <label for="productName" class="form-label">Nombre del Producto *</label>
+                    <input 
+                        type="text" 
+                        id="productName" 
+                        class="form-input" 
+                        placeholder="Ej: Laptop Gaming Pro"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="productDescription" class="form-label">Descripción *</label>
+                    <textarea 
+                        id="productDescription" 
+                        class="form-textarea" 
+                        placeholder="Describe las características principales del producto..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">URLs de Imágenes (una por línea, mínimo 1, máximo 5)</label>
+                    <textarea 
+                        id="productImages" 
+                        class="form-textarea" 
+                        placeholder="https://ejemplo.com/imagen1.jpg&#10;https://ejemplo.com/imagen2.jpg&#10;https://ejemplo.com/imagen3.jpg"
+                        style="min-height: 150px;"
+                    ></textarea>
+                    <small style="color: var(--text-light); font-size: 0.875rem; margin-top: 0.5rem; display: block;">
+                        Puedes usar URLs de servicios como Unsplash, Pexels o cualquier imagen pública. Si no agregas imágenes, se usará una imagen por defecto.
+                    </small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">💾 Guardar Producto</button>
+                    <a href="admin-productos.html" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-left">
+                <div class="footer-logo">
+                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="40" height="40" rx="8" fill="#2563eb"/>
+                        <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <p class="footer-text">© 2025 ShopHub. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Inicializar DB
+        window.ShopHub.initDB();
+
+        // Manejar envío del formulario
+        document.getElementById('addProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = '';
+            
+            // Obtener valores
+            const nombre = document.getElementById('productName').value.trim();
+            const descripcion = document.getElementById('productDescription').value.trim();
+            const imagenesText = document.getElementById('productImages').value.trim();
+            
+            // Validar nombre
+            if (!nombre) {
+                showMessage('Por favor, ingresa un nombre para el producto.', 'error');
+                return;
+            }
+            
+            // Validar si el nombre ya existe
+            if (window.ShopHub.productNameExists(nombre)) {
+                showMessage('Ya existe un producto con ese nombre. Por favor, elige otro nombre.', 'error');
+                return;
+            }
+            
+            // Validar descripción
+            if (!descripcion) {
+                showMessage('Por favor, ingresa una descripción para el producto.', 'error');
+                return;
+            }
+            
+            // Procesar imágenes
+            let imagenes = [];
+            if (imagenesText) {
+                imagenes = imagenesText
+                    .split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url.length > 0);
+                
+                if (imagenes.length > 5) {
+                    showMessage('Puedes agregar un máximo de 5 imágenes.', 'error');
+                    return;
+                }
+            }
+            
+            // Si no hay imágenes, usar una por defecto
+            if (imagenes.length === 0) {
+                imagenes = ['https://via.placeholder.com/800x600?text=Producto+Sin+Imagen'];
+            }
+            
+            // Crear producto
+            const newProduct = {
+                nombre: nombre,
+                descripcion: descripcion,
+                imagenes: imagenes
+            };
+            
+            // Guardar producto
+            window.ShopHub.addProduct(newProduct);
+            
+            // Mostrar mensaje de éxito
+            showMessage('¡Producto agregado exitosamente!', 'success');
+            
+            // Limpiar formulario
+            document.getElementById('addProductForm').reset();
+            
+            // Redirigir después de 2 segundos
+            setTimeout(() => {
+                window.location.href = 'admin-productos.html';
+            }, 2000);
+        });
+
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            messageContainer.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            // Scroll al mensaje
+            messageContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
